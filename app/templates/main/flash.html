@@ -1,0 +1,10 @@
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="notice notice-{{ category }}" role="status">
+                <span>{{ message }}</span>
+                <button type="button" class="notice-close" aria-label="Закрыть уведомление">×</button>
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}

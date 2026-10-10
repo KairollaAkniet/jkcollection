@@ -1,0 +1,43 @@
+{% extends 'main/base.html' %}
+
+{% block title %}Войти — JKCOLLECTION{% endblock %}
+{% block page_class %}auth-page{% endblock %}
+
+{% block content %}
+<section class="auth-section">
+    <div class="auth-photo" aria-hidden="true"></div>
+    <div class="auth-content">
+        <a class="auth-brand" href="{{ url_for('post.all') }}">
+            <span class="brand-symbol"><img src="{{ url_for('static', filename='img/logo.jpg') }}" alt=""></span>
+            <span>JKCOLLECTION</span>
+        </a>
+        <h1>Рады видеть тебя снова</h1>
+        <p class="auth-subtitle">Войди в свой аккаунт</p>
+        <form method="post" class="auth-form">
+            {{ form.hidden_tag() }}
+            {% if form.csrf_token is defined %}
+                {% for error in form.csrf_token.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+            {% endif %}
+            <div class="form-field">
+                {{ form.login.label }}
+                {{ form.login(class="form-control", placeholder="Логин", autocomplete="username", aria_describedby="login-errors") }}
+                <div class="field-error" id="login-errors">{% for error in form.login.errors %}<span>{{ error }}</span>{% endfor %}</div>
+            </div>
+            <div class="form-field">
+                {{ form.password.label }}
+                <div class="password-field">
+                    {{ form.password(class="form-control", placeholder="Пароль", autocomplete="current-password", aria_describedby="password-errors") }}
+                    <button type="button" class="password-toggle" data-password="password" aria-label="Показать пароль" aria-pressed="false">
+                        <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" stroke="currentColor" stroke-width="1.4"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.4"/></svg>
+                    </button>
+                </div>
+                <div class="field-error" id="password-errors">{% for error in form.password.errors %}<span>{{ error }}</span>{% endfor %}</div>
+            </div>
+            <label class="remember">{{ form.remember() }} <span>Запомнить меня</span></label>
+            {{ form.submit(class="button") }}
+        </form>
+        <p class="auth-switch">Нет аккаунта? <a href="{{ url_for('user.register') }}">Создать аккаунт</a></p>
+        <a class="back-link" href="{{ url_for('post.all') }}">← Вернуться в коллекцию</a>
+    </div>
+</section>
+{% endblock %}

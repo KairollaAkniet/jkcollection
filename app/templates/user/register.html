@@ -1,0 +1,48 @@
+{% extends 'main/base.html' %}
+
+{% block title %}Создать аккаунт — JKCOLLECTION{% endblock %}
+{% block page_class %}auth-page register-page{% endblock %}
+
+{% block content %}
+<section class="auth-section">
+    <div class="auth-photo" aria-hidden="true"></div>
+    <div class="auth-content">
+        <a class="auth-brand" href="{{ url_for('post.all') }}">
+            <span class="brand-symbol"><img src="{{ url_for('static', filename='img/logo.jpg') }}" alt=""></span>
+            <span>JKCOLLECTION</span>
+        </a>
+        <h1>Создать аккаунт</h1>
+        <p class="auth-subtitle">Твоя коллекция начинается здесь</p>
+        <form method="post" enctype="multipart/form-data" class="auth-form">
+            {{ form.hidden_tag() }}
+            {% if form.csrf_token is defined %}
+                {% for error in form.csrf_token.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+            {% endif %}
+            {% for field in [form.name, form.login, form.password, form.confirm_password] %}
+                <div class="form-field">
+                    {{ field.label }}
+                    <div class="{% if field.type == 'PasswordField' %}password-field{% endif %}">
+                        {% if field.type == 'PasswordField' %}
+                            {{ field(class="form-control" + (" is-invalid" if field.errors else ""), placeholder=field.label.text, autocomplete="new-password", aria_describedby=field.id + "-errors") }}
+                            <button type="button" class="password-toggle" data-password="{{ field.id }}" aria-label="Показать пароль" aria-pressed="false">
+                                <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" stroke="currentColor" stroke-width="1.4"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.4"/></svg>
+                            </button>
+                        {% else %}
+                            {{ field(class="form-control" + (" is-invalid" if field.errors else ""), placeholder=field.label.text, autocomplete="name" if field.name == "name" else "username", aria_describedby=field.id + "-errors") }}
+                        {% endif %}
+                    </div>
+                    <div class="field-error" id="{{ field.id }}-errors">{% for error in field.errors %}<span>{{ error }}</span>{% endfor %}</div>
+                </div>
+            {% endfor %}
+            <details class="avatar-field" {% if form.avatar.errors %}open{% endif %}>
+                <summary>Добавить фото профиля <span>необязательно</span></summary>
+                {{ form.avatar(class="form-control", accept=".jpg,.jpeg,.png", aria_label="Фото профиля") }}
+                {% for error in form.avatar.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+            </details>
+            {{ form.submit(class="button", value="Создать аккаунт") }}
+        </form>
+        <p class="auth-switch">Уже есть аккаунт? <a href="{{ url_for('user.login') }}">Войти</a></p>
+        <a class="back-link" href="{{ url_for('post.all') }}">← Вернуться в коллекцию</a>
+    </div>
+</section>
+{% endblock %}

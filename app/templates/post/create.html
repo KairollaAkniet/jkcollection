@@ -1,0 +1,14 @@
+{% extends 'main/base.html' %}
+
+{% block title %} Добавление темы{% endblock %}
+
+{% block content %} 
+<h1>CKJK COLLECTION </h1> 
+
+<form method="post" class="form-control d-flex flex-column gap-2">
+    <input name="jacket" type="text" placeholder="Размер jacket" class="form-control">
+    <input name="tshirt" type="text" placeholder="Размер t-shirt" class="form-control">
+    <input name="jins" type="text" placeholder="Размер jins" class="form-control">
+    <input value="Добавить" type="submit" class="btn btn-success">
+</form>
+{% endblock %}

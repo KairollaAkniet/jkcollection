@@ -1,0 +1,69 @@
+{% extends 'main/base.html' %}
+
+{% block title %}JKCOLLECTION — твоя коллекция{% endblock %}
+{% block page_class %}home-page{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <img class="hero-photo" src="{{ url_for('static', filename='img/hero.jpg') }}" alt="Чонгук в чёрном образе с серебряными аксессуарами" fetchpriority="high">
+    <div class="hero-shade"></div>
+    <div class="hero-content">
+        <p class="eyebrow">INSPIRED BY JUNGKOOK</p>
+        <h1>JKCOLLECTION</h1>
+        <span class="hero-script" aria-hidden="true">Collection</span>
+        <div class="hero-line"></div>
+        <p class="hero-description">Твой стиль.<br>Твоя коллекция.</p>
+        <a class="button hero-button" href="#catalog">Смотреть коллекцию <span aria-hidden="true">↗</span></a>
+    </div>
+    <div class="hero-side" aria-hidden="true">ART<br>MUSIC<br>FASHION<br>SELF</div>
+    <div class="hero-bottom"><span>THE COLLECTION / 01</span><a href="#catalog" aria-label="Перейти к каталогу">↓</a></div>
+</section>
+
+<section class="catalog section-width" id="catalog">
+    <div class="section-heading"><h2>Выбери свой образ</h2><span class="heading-line"></span><span id="product-count"></span></div>
+    <div class="catalog-tools">
+        <div class="category-buttons" aria-label="Фильтр категорий">
+            <button class="active" type="button" data-category="all" aria-pressed="true">Всё</button>
+            <button type="button" data-category="jackets" aria-pressed="false">Куртки</button>
+            <button type="button" data-category="jeans" aria-pressed="false">Джинсы</button>
+            <button type="button" data-category="tshirts" aria-pressed="false">Футболки</button>
+            <button type="button" data-category="albums" aria-pressed="false">Альбомы</button>
+            <button type="button" data-category="accessories" aria-pressed="false">Аксессуары</button>
+        </div>
+        <label class="sort-label">Сортировать
+            <select id="product-sort">
+                <option value="default">По умолчанию</option>
+                <option value="price-low">Сначала дешевле</option>
+                <option value="price-high">Сначала дороже</option>
+            </select>
+        </label>
+    </div>
+    <div class="products" id="products"></div>
+    <noscript><p>Включи JavaScript, чтобы посмотреть каталог и пользоваться корзиной.</p></noscript>
+    <p class="catalog-note">Наведи на фото, чтобы увидеть образ — у вещей с парным снимком.</p>
+</section>
+
+<section class="collection-story section-width">
+    <div><p class="eyebrow">MORE THAN A COLLECTION</p><h2>Детали, в которых<br>узнаёшь себя.</h2></div>
+    <div><p>Любимые образы, музыка и немного вдохновения. Собери коллекцию, которая расскажет твою историю.</p><a class="text-link" href="{{ url_for('post.all', category='albums') }}#catalog">Открыть альбомы ↗</a></div>
+</section>
+
+{% if current_user.is_authenticated %}
+<details class="user-posts section-width">
+    <summary>Мои записи</summary>
+    <a class="text-link" href="{{ url_for('post.create') }}">Добавить запись ↗</a>
+    <div class="table-responsive">
+        <table class="table">
+            <thead><tr><th>Футболка</th><th>Джинсы</th><th>Действия</th></tr></thead>
+            <tbody>
+            {% for post in posts %}
+                {% if post.jacket == current_user.id %}
+                <tr><td>{{ post.tshirt }}</td><td>{{ post.jins }}</td><td><a href="{{ url_for('post.update', id=post.id) }}">Редактировать</a></td></tr>
+                {% endif %}
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</details>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#191a17">
+    <meta name="description" content="JKCOLLECTION — одежда, альбомы и аксессуары. Собери свою коллекцию.">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/libs/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/fonts.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}?v=jk1">
+    {% block style %}{% endblock %}
+    <title>{% block title %}JKCOLLECTION{% endblock %}</title>
+</head>
+<body class="{% block page_class %}{% endblock %}">
+<a class="skip-link" href="#main">Перейти к содержимому</a>
+<div class="page">
+    <header class="header">{% include 'main/header.html' %}</header>
+    <main class="content" id="main">
+        <div class="messages">{% include 'main/flash.html' %}</div>
+        {% block content %}{% endblock %}
+    </main>
+    <footer class="footer">{% include 'main/footer.html' %}</footer>
+</div>
+
+<dialog class="product-dialog" id="product-dialog" aria-labelledby="product-title">
+    <button class="close-button" type="button" data-close aria-label="Закрыть товар">×</button>
+    <div class="product-detail">
+        <div class="product-gallery">
+            <img id="product-image" src="{{ url_for('static', filename='img/jacket.jpg') }}" alt="">
+        </div>
+        <div class="product-info">
+            <p class="eyebrow" id="product-category"></p>
+            <h2 id="product-title"></h2>
+            <p class="product-price" id="product-price"></p>
+            <p class="muted" id="product-description"></p>
+            <fieldset class="size-field">
+                <legend id="size-label">Размер</legend>
+                <div class="sizes" id="product-sizes"></div>
+            </fieldset>
+            <button class="button" type="button" id="add-to-cart">Добавить в корзину <span aria-hidden="true">↗</span></button>
+            <p class="product-note">Стоимость и ассортимент пока указаны для примера.</p>
+        </div>
+    </div>
+</dialog>
+
+<dialog class="cart-dialog" id="cart-dialog" aria-labelledby="cart-title">
+    <div class="cart-heading">
+        <h2 id="cart-title">Корзина <span class="cart-total-count">(0)</span></h2>
+        <button class="close-button" type="button" data-close aria-label="Закрыть корзину">×</button>
+    </div>
+    <div id="cart-items"></div>
+    <div class="cart-summary" id="cart-summary">
+        <div class="cart-total"><span>Итого</span><strong id="cart-total">0 ₸</strong></div>
+        <p class="muted small">Онлайн-оформление ещё не подключено. Товары сохранятся в корзине на этом устройстве.</p>
+    </div>
+    <button class="button" type="button" data-close>Продолжить покупки <span aria-hidden="true">↗</span></button>
+</dialog>
+<div class="toast-message" id="cart-message" role="status" aria-live="polite"></div>
+<script src="{{ url_for('static', filename='js/app.js') }}?v=jk1" defer></script>
+{% block script %}{% endblock %}
+</body>
+</html>
