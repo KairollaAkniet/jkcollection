@@ -1,100 +1,166 @@
 # JKCOLLECTION
 
-Flask, PostgreSQL, Nginx и Gunicorn.
+A small fashion storefront built with Flask. It has a product catalog with a
+client-side shopping cart, user accounts with avatars, and authenticated CRUD
+for outfit posts. The stack runs behind Nginx and Gunicorn and ships with a
+Docker Compose setup for local use and a Dockerfile for hosted deployment.
 
-## Запуск в Docker
+The UI is in Russian. The visual concept is inspired by Jungkook; this is a
+fan project and is not affiliated with him, BTS or any brand shown.
 
-Работай из папки проекта. Docker Compose запускает отдельную базу данных;
-данные из локального PostgreSQL автоматически в неё не копируются.
+## Screenshots
 
-На новом компьютере скопируй `.env.example` в `.env` и укажи свои значения.
-В существующем проекте `.env` уже настроен, не перезаписывай его примером.
-Для генерации SECRET_KEY: `python -c "import secrets; print(secrets.token_hex(32))"`.
+![Home page](docs/screenshots/home.webp)
+
+| Catalog | Registration |
+|---------|--------------|
+| ![Catalog with category filters](docs/screenshots/catalog.webp) | ![Registration form](docs/screenshots/register.webp) |
+
+## Features
+
+- Product catalog with category filters, sorting, a detail dialog, size selection and a cart that persists
+  in `localStorage`
+- Registration and login with bcrypt-hashed passwords and "remember me"
+- Avatar upload (JPG/PNG, 5 MB request limit)
+- Outfit posts: create, edit and delete for logged-in users
+- CSRF protection on forms (Flask-WTF), HttpOnly / SameSite session cookies,
+  optional `Secure` flag for HTTPS
+- Schema migrations with Alembic via Flask-Migrate
+- Static asset bundling and minification with Flask-Assets
+
+## Tech stack
+
+| Layer       | Tools                                              |
+|-------------|----------------------------------------------------|
+| Backend     | Python 3.12, Flask 3, SQLAlchemy 2, Flask-Login    |
+| Database    | PostgreSQL (psycopg2), Alembic migrations          |
+| Frontend    | Jinja2 templates, Bootstrap, vanilla JavaScript    |
+| Serving     | Gunicorn behind Nginx                              |
+| Packaging   | Docker, Docker Compose                             |
+
+## Project layout
+
+```
+.
+├── app/
+│   ├── __init__.py        # application factory
+│   ├── config.py          # configuration from environment variables
+│   ├── extensions.py      # db, migrate, login manager, assets
+│   ├── forms.py           # WTForms (registration, login)
+│   ├── bundles.py         # asset bundles
+│   ├── models/            # User, Post
+│   ├── routes/            # user and post blueprints
+│   ├── templates/
+│   └── static/            # css, js, images, uploads
+├── migrations/            # Alembic environment and versions
+├── nginx/                 # Nginx image and config
+├── Dockerfile
+├── docker-compose.yaml
+├── run.py                 # WSGI entry point (run:application)
+└── requirements.txt
+```
+
+## Getting started
+
+### With Docker
+
+Requires Docker with the Compose plugin.
+
+```bash
+git clone https://github.com/KairollaAkniet/jkcollection.git
+cd jkcollection
+cp .env.example .env
+```
+
+Edit `.env` and set at least `POSTGRES_PASSWORD` and `SECRET_KEY`. A key can be
+generated with:
+
+```bash
+python -c "import secrets; print(secrets.token_hex(32))"
+```
+
+Then start the stack:
 
 ```bash
 docker compose up -d --build
-docker compose ps
-docker compose logs --tail=100 flask nginx
 ```
 
-Сайт: http://127.0.0.1:8080 . Порт можно изменить через WEB_PORT в `.env`.
-PostgreSQL доступен только внутри Docker. HOST и PORT из `.env` остаются для
-локального Flask; в контейнере они заменяются на postgres:5432.
+The site is available at <http://127.0.0.1:8080>. PostgreSQL is only reachable
+inside the Compose network.
 
 ```bash
-docker compose down
+docker compose logs -f flask nginx   # logs
+docker compose down                  # stop, keep volumes
 ```
 
-Эта команда сохраняет тома базы данных и загруженных изображений.
-Не добавляй `-v`, если нужно сохранить эти данные.
+Do not pass `-v` to `down` unless you want to delete the database and uploaded
+files.
 
-## Локальная разработка в WSL
+### Without Docker
+
+Requires Python 3.12 and a running PostgreSQL instance.
 
 ```bash
-source env/bin/activate
+python -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
+cp .env.example .env     # set POSTGRES_* to match your local database
 flask --app app:create_app run --debug
 ```
 
-Локальный PostgreSQL должен быть запущен по HOST и PORT из `.env`.
-Если загружать старые приложения из терминала без Flask CLI, используй
-`run:application`: там .env загружается до импорта настроек.
-
-## Деплой
-
-Контейнеры запускаются теми же командами. До публикации выбери хостинг,
-домен и настрой HTTPS. По умолчанию сайт привязан к 127.0.0.1, чтобы его
-можно было безопасно проверить до публикации. Для прямого доступа на VPS
-нужен WEB_BIND=0.0.0.0; при HTTPS установи COOKIE_SECURE=true.
-Сначала настрой сертификат и HTTPS-прокси, затем включай secure cookies.
-На HTTPS-прокси направляй запросы на порт WEB_PORT.
-
-Существующие данные нужно переносить через pg_dump/pg_restore отдельно.
-Приложение создаёт таблицы на пустой базе. Миграции хранятся в migrations;
-перед изменением схемы на рабочем сервере создай и проверь миграцию.
-
-Корзина сейчас хранится в браузере. Каталог задан в JavaScript;
-онлайн-оплата и оформление заказов на сервере пока не подключены.
-
-## GitHub
-
-.env, виртуальное окружение, дампы базы и пользовательские загрузки
-исключены из Git и Docker-образа. migrations нужно хранить в репозитории.
-Локальный репозиторий уже создан; код ещё не опубликован на GitHub.
+Tables are created automatically on first start. When changing models, generate
+a migration instead of relying on that:
 
 ```bash
-git init -b main
-git add .
-git status
+flask --app app:create_app db migrate -m "describe the change"
+flask --app app:create_app db upgrade
 ```
 
-Перед коммитом убедись, что в списке нет .env, env/ и дампов базы.
-После выбора GitHub-репозитория можно сделать коммит и добавить remote.
+## Configuration
 
-В Docker используется Gunicorn. app.ini — прежняя настройка uWSGI,
-в текущем запуске она не используется.
+All settings come from environment variables (`.env` is loaded by `run.py`).
 
-## Render + Neon
+| Variable                                    | Description                                                        |
+|---------------------------------------------|--------------------------------------------------------------------|
+| `SECRET_KEY`                                | Required. The app refuses to start without it.                     |
+| `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` | Database credentials.                                      |
+| `POSTGRES_HOST`, `POSTGRES_PORT`            | Database address for local runs. Compose overrides these.          |
+| `DATABASE_URL`                              | Full connection URL. Takes precedence over the `POSTGRES_*` values.|
+| `WEB_BIND`, `WEB_PORT`                      | Host interface and port Nginx is published on (default `127.0.0.1:8080`). |
+| `COOKIE_SECURE`                             | Set to `true` when serving over HTTPS.                             |
+| `PORT`                                      | Port Gunicorn listens on inside the container (default `8080`).    |
 
-Для Render используется Dockerfile из корня репозитория, не docker-compose.yaml.
-В Render выбери Web Service, подключи GitHub-репозиторий и тариф Free.
-Runtime: Docker. Dockerfile Path: ./Dockerfile. Health Check Path: /.
+## Deployment
 
-В Neon создай PostgreSQL-проект на бесплатном тарифе. В Connect скопируй
-строку подключения, включая sslmode=require. В Render добавь секретные
-переменные через Environment, не коммить их в Git:
+The `Dockerfile` in the repository root is what hosted platforms build;
+`docker-compose.yaml` is intended for local and single-server use.
 
-- DATABASE_URL: строка подключения из Neon.
-- SECRET_KEY: отдельный случайный ключ (Generate в Render).
-- COOKIE_SECURE: true.
-- FLASK_DEBUG: 0.
+A free-tier setup that works: a Docker web service on Render plus a Neon
+PostgreSQL database.
 
-Порт берётся из PORT, который предоставляет Render. Если PORT не задан,
-Docker запускает сайт на 8080 как раньше.
+1. Create the Neon project and copy the connection string (with
+   `sslmode=require`).
+2. On Render, create a Web Service from this repository with runtime Docker and
+   health check path `/`.
+3. Set `DATABASE_URL`, `SECRET_KEY`, `COOKIE_SECURE=true` and `FLASK_DEBUG=0` as
+   environment variables.
 
-На бесплатном Render аватарки, загруженные пользователями, не сохраняются
-после перезапуска. Для их постоянного хранения понадобится отдельное
-облачное хранилище. Фото товаров входят в исходники и сохраняются.
-Аккаунты будут храниться в Neon; старая локальная база не переносится автоматически.
+Note that the local filesystem on free Render instances is ephemeral, so
+uploaded avatars do not survive a restart. Product images are part of the
+repository and are not affected.
 
-Документация: https://render.com/docs/deploy-flask и https://render.com/docs/free.
+If you expose the Compose stack directly on a server, set `WEB_BIND=0.0.0.0`
+and terminate TLS in front of it before enabling `COOKIE_SECURE`.
+
+## Known limitations
+
+- The product catalog is defined in `app/static/js/app.js`, not in the database,
+  and prices are placeholders.
+- The cart lives in the browser only. There is no checkout or payment.
+- Uploaded files are stored on local disk. Moving to object storage (S3 or
+  similar) is the obvious next step for hosted deployments.
+- There is no automated test suite yet.
+
+## License
+
+No license has been chosen yet; all rights reserved by the author.

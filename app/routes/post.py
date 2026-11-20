@@ -60,8 +60,8 @@ def update(id):
 @login_required
 def delete(id):
     
+    post = Post.query.get_or_404(id)
     if post.author.id == current_user.id:
-        post = Post.query.get(id)
         try:
             db.session.delete(post)
             db.session.commit()
